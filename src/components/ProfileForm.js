@@ -1,14 +1,29 @@
 import React from 'react';
 import { Header, Form, Grid, Button } from 'semantic-ui-react';
+import * as firebase from 'firebase/app';
+import 'firebase/storage';
+import { saveProfile } from '../APIManager/profiles'
 
 class ProfileForm extends React.Component {
+  storageRef = firebase.storage().ref('profile-images')
+
   state = {
     username: '',
-    aboutMe: ''
+    aboutMe: '',
+    photo: null
   };
 
-  saveProfile = () => {
-    console.log('Do Stuff');
+  submitForm = () => {
+    this.storageRef.child(this.state.username).put(this.state.photo)
+      .then(data => data.ref.getDownloadURL())
+      .then(url => {
+        console.log(this.state)
+        return saveProfile({
+          username: this.state.username,
+          about: this.state.aboutMe,
+          photoUrl: url
+        })
+      })
   }
 
   render() {
@@ -20,7 +35,7 @@ class ProfileForm extends React.Component {
         <Grid>
           <Grid.Row centered>
             <Grid.Column largeScreen={4} computer={6} tablet={8} mobile={12}>
-              <Form onSubmit={this.saveProfile}>
+              <Form onSubmit={this.submitForm}>
                 <Form.Field
                   control="input"
                   type="text"
@@ -35,6 +50,12 @@ class ProfileForm extends React.Component {
                   placeholder="About me" />
                 <Button type="submit" content="Save" color="purple" />
               </Form>
+              <Form.Field
+                  control="input"
+                  type="file"
+                  label="photo"
+                  onChange={(e) => this.setState({ photo: e.target.files[0] })} />
+                <Button type="submit" content="Save" color="purple" />
             </Grid.Column>
           </Grid.Row>
         </Grid>
